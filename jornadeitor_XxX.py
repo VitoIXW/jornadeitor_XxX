@@ -22,11 +22,15 @@ def rellenar_registro(archivo_entrada, config_path="config.yaml"):
     nombre_apellidos = config.get("nombre_apellidos", "")
     nif = config.get("nif", "")
     naf = config.get("naf", "")
-    hora_entrada = config.get("hora_entrada", "9:00")
-    hora_salida = config.get("hora_salida", "17:00")
-    firma_path = config.get("firma", "sign/sign.png")
 
-    # Verificar si la firma existe
+    # Horas
+    hora_entrada_mañana = config.get("hora_entrada_mañana", "9:00")
+    hora_salida_mañana = config.get("hora_salida_mañana", "")
+    hora_entrada_tarde = config.get("hora_entrada_tarde", "")
+    hora_salida_tarde = config.get("hora_salida_tarde", "17:00")
+
+    # Firma
+    firma_path = config.get("firma", "sign/sign.png")
     if not os.path.exists(firma_path):
         print(f"❌ La firma {firma_path} no existe.")
         return
@@ -50,20 +54,28 @@ def rellenar_registro(archivo_entrada, config_path="config.yaml"):
             if any(palabra in row.cells[0].text.lower() for palabra in ["día", "recibido", "firma"]):
                 continue
             
-            # Verificar que tiene al menos 6 columnas (día + 4 horas + firma)
             if len(row.cells) >= 6:
-                # Rellenar Entrada Mañana
-                if row.cells[1].text.strip() == "":
-                    row.cells[1].text = hora_entrada
-                # Salida Mañana en blanco
-                row.cells[2].text = ""
-                # Entrada Tarde en blanco
-                row.cells[3].text = ""
-                # Rellenar Salida Tarde
-                if row.cells[4].text.strip() == "":
-                    row.cells[4].text = hora_salida
-                
-                # Vaciar celda de firma antes de insertar la imagen
+                # Entrada Mañana
+                if row.cells[1].text.strip() == "" and hora_entrada_mañana:
+                    row.cells[1].text = hora_entrada_mañana
+
+                # Salida Mañana (solo si hay hora)
+                if hora_salida_mañana:
+                    row.cells[2].text = hora_salida_mañana
+                else:
+                    row.cells[2].text = ""
+
+                # Entrada Tarde (solo si hay hora)
+                if hora_entrada_tarde:
+                    row.cells[3].text = hora_entrada_tarde
+                else:
+                    row.cells[3].text = ""
+
+                # Salida Tarde
+                if row.cells[4].text.strip() == "" and hora_salida_tarde:
+                    row.cells[4].text = hora_salida_tarde
+
+                # Firma (última columna)
                 firma_cell = row.cells[5]
                 firma_cell.text = ""
                 run = firma_cell.paragraphs[0].add_run()
@@ -75,7 +87,7 @@ def rellenar_registro(archivo_entrada, config_path="config.yaml"):
     # Nombre de salida
     nombre_salida = os.path.join("output", os.path.basename(archivo_entrada))
     doc.save(nombre_salida)
-    print(f"✅ Archivo generado con datos personales, horas y firmas: {nombre_salida}")
+    print(f"✅ Archivo generado con datos, horarios y firmas: {nombre_salida}")
 
 
 if __name__ == "__main__":
