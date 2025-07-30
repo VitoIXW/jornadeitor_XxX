@@ -1,6 +1,7 @@
 import os
 import sys
 from docx import Document
+from docx.shared import Inches
 
 def rellenar_registro(archivo_entrada, hora_entrada="9:00", hora_salida="17:00"):
     # Verificar si el archivo existe
@@ -8,18 +9,24 @@ def rellenar_registro(archivo_entrada, hora_entrada="9:00", hora_salida="17:00")
         print(f"❌ El archivo {archivo_entrada} no existe.")
         return
     
+    # Verificar si la firma existe
+    firma_path = os.path.join("sign", "sign.png")
+    if not os.path.exists(firma_path):
+        print(f"❌ La firma {firma_path} no existe.")
+        return
+    
     # Cargar el documento
     doc = Document(archivo_entrada)
 
-    # Rellenar las celdas vacías con las horas indicadas
+    # Rellenar las celdas vacías con las horas indicadas y añadir la firma
     for table in doc.tables:
         for row in table.rows:
             # Ignorar filas de encabezados o finales
             if any(palabra in row.cells[0].text.lower() for palabra in ["día", "recibido", "firma"]):
                 continue
-
-            # Las columnas están en orden: Día, Entrada Mañana, Salida Mañana, Entrada Tarde, Salida Tarde
-            if len(row.cells) >= 5:
+            
+            # Verificar que tiene al menos 6 columnas (día + 4 horas + firma)
+            if len(row.cells) >= 6:
                 # Rellenar Entrada Mañana
                 if row.cells[1].text.strip() == "":
                     row.cells[1].text = hora_entrada
@@ -30,6 +37,13 @@ def rellenar_registro(archivo_entrada, hora_entrada="9:00", hora_salida="17:00")
                 # Rellenar Salida Tarde
                 if row.cells[4].text.strip() == "":
                     row.cells[4].text = hora_salida
+                
+                # Vaciar celda de firma antes de insertar la imagen
+                firma_cell = row.cells[5]
+                firma_cell.text = ""
+                # Insertar la firma (ajustamos tamaño)
+                run = firma_cell.paragraphs[0].add_run()
+                run.add_picture(firma_path, width=Inches(1))
 
     # Crear carpeta output si no existe
     os.makedirs("output", exist_ok=True)
@@ -37,7 +51,7 @@ def rellenar_registro(archivo_entrada, hora_entrada="9:00", hora_salida="17:00")
     # Nombre de salida
     nombre_salida = os.path.join("output", os.path.basename(archivo_entrada))
     doc.save(nombre_salida)
-    print(f"✅ Archivo generado: {nombre_salida}")
+    print(f"✅ Archivo generado con firmas: {nombre_salida}")
 
 
 if __name__ == "__main__":
