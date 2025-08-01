@@ -1,0 +1,14 @@
+# === CONFIGURACIÓN DEL EMPLEADO ===
+nombre_apellidos: "Juan Pérez García"
+nif: "12345678A"
+naf: "112233445566"
+
+# === HORARIOS DE TRABAJO ===
+hora_entrada_mañana: "09:00"
+hora_salida_mañana: ""       # Dejar vacío si no se quiere rellenar
+hora_entrada_tarde: ""       # Dejar vacío si no se quiere rellenar
+hora_salida_tarde: "17:00"
+
+# === FIRMA ===
+firma: "sign/sign.png"       # Ruta relativa a la imagen de firma (.png)
+
